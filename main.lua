@@ -6,7 +6,7 @@
 local Module = { }
 
 function Module:register(parameters)
-    modula:registerForEvents(self, "onStart", "onStop", "onSlowUpdate")
+    modula:registerForEvents(self, "onStart", "onIndustryTick")
 end
 
 -- ---------------------------------------------------------------------
