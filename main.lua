@@ -52,13 +52,12 @@ function Module:scanIndustry()
         for i,machine in ipairs(machines) do
             local product = machine.mainProduct
             if product then
-                local state = machine.info.state
+                local state = machine.state
                 if state > 0 then
-                    local info = machine.info
                     local name = product:getName()
                     -- local icon = product:getIcon()
                     if machine:isRunning() or machine:isPending() then
-                        local remaining = info.schematicsRemaining
+                        local remaining = machine.schematicsRemaining
                         if (remaining > 0) and (remaining < 10) then
                             debugf("%s: Schematics Low (%s)", name, remaining)
                         end
