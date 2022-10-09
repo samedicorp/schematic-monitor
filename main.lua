@@ -47,6 +47,8 @@ end
 
 function Module:scanIndustry()
     local industry = self.industry
+    local alerts = {}
+
     if industry then
         local machines = industry:getMachines()
         for i,machine in ipairs(machines) do
@@ -59,58 +61,35 @@ function Module:scanIndustry()
                     if machine:isRunning() or machine:isPending() then
                         local remaining = machine.schematicsRemaining
                         if (remaining > 0) and (remaining < 10) then
-                            debugf("%s: Schematics Low (%s)", name, remaining)
+                            local alert = string.format("%s: Schematics Low (%s)", name, remaining)
+                            table.insert(alerts, alert)
                         end
                     elseif machine:isMissingSchematics() then
-                        debugf("%s: Out Of Schematics", name)
+                        local alert = string.format("%s: Out Of Schematics", name)
+                        table.insert(alerts, alert)
                     end
                 end
             end
         end
     end
+
+    self.screen:send(alerts)
 end
 
-        -- if info and info.state and info.state > 0 then
-        --     local name = core.getElementDisplayNameById(elementID)
-
-        --     local product = info.currentProducts[1]
-        --     if product then
-        --         local productItem = system.getItem(product.id)
-        --         local name = productItem.locDisplayName
-        --         local icon = productItem.iconPath
-        --         local schematic = productItem.schematics[1]
-        --         local state = info.state
-        --         if state == 2 then
-        --             local remaining = info.schematicsRemaining
-        --             if (remaining > 0) and (remaining < 10) then
-        --                 debugf("%s: Schematics Low (%s)", name, remaining)
-        --             end
-        --         elseif state == 7 then
-        --             debugf("%s: Out Of Schematics", name)
-        --             debugf(productItem)
-        --         else
-        --             debugf("%s %d", name, state)
-        --         end
-        --     end
-
-        -- end
 
 Module.renderScript = [[
 
 state = state or { lines = { "hello world" }}
 
 if payload then
-    local text = payload.text
-    if text then
-        table.append(state.lines, text)
-    end
+    state.lines = payload
     reply = { result = "ok" }
 end
 
 local screen = toolkit.Screen.new()
 local layer = screen:addLayer()
-
-local chart = layer:addField(layer.rect:inset(10), state)
+local font = toolkit.Font.new("Play", 40)
+local chart = layer:addField(layer.rect:inset(10), state, font)
 
 layer:render()
 screen:scheduleRefresh()
