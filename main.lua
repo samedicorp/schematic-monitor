@@ -3,16 +3,10 @@
 --  All code (c) 2022, The Samedi Corporation.
 -- -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
--- If setting up manually, add the following onOutputChanged handler to any connected screens:
-    -- local failure = modula:call("onScreenReply", output)
-    -- if failure then 
-    --     error(failure) 
-    -- end
-
 local Module = { }
 
 function Module:register(parameters)
-    modula:registerForEvents(self, "onStart", "onStop", "onContainerChanged")
+    modula:registerForEvents(self, "onStart", "onStop")
 end
 
 -- ---------------------------------------------------------------------
@@ -20,24 +14,17 @@ end
 -- ---------------------------------------------------------------------
 
 function Module:onStart()
-    debugf("Container Monitor started.")
+    debugf("Schematic Monitor started.")
 
     self:attachToScreen()
-    local containers = modula:getService("containers")
-    if containers then
-        containers:findContainers("ContainerSmallGroup", "ContainerMediumGroup", "ContainerLargeGroup", "ContainerXLGroup")
-    end
 end
 
 function Module:onStop()
-    debugf("Container Monitor stopped.")
-end
-
-function Module:onContainerChanged(container)
-    self.screen:send({ name = container:name(), value = container.percentage })
+    debugf("Schematic Monitor stopped.")
 end
 
 function Module:onScreenReply(reply)
+    -- handle screen messages here
 end
 
 
@@ -70,7 +57,9 @@ end
 
 local screen = toolkit.Screen.new()
 local layer = screen:addLayer()
-local chart = layer:addChart(layer.rect:inset(10), containers, { useValueColors = true })
+
+state = state or { lines = { "hello world" }}
+local chart = layer:addField(layer.rect:inset(10), state)
 
 layer:render()
 screen:scheduleRefresh()

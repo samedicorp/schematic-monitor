@@ -12,7 +12,6 @@ modulaSettings = {
     logging = logging, 
     useLocal = useLocal,
     modules = {
-        ["samedicorp.modula.modules.containers"] = { },
         ["samedicorp.modula.modules.screen"] = { },
         ["samedicorp.schematic-monitor.main"] = { }
     },
