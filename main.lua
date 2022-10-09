@@ -6,7 +6,7 @@
 local Module = { }
 
 function Module:register(parameters)
-    modula:registerForEvents(self, "onStart", "onStop")
+    modula:registerForEvents(self, "onStart", "onStop", "onSlowUpdate")
 end
 
 -- ---------------------------------------------------------------------
@@ -16,18 +16,20 @@ end
 function Module:onStart()
     debugf("Schematic Monitor started.")
 
-    self.industry = modula:getService("industry")
-
     self:attachToScreen()
+
+    self:setupIndustry()
+    self:scanIndustry()
+
+    modula:addTimer("onIndustryTick", 60.0)
+end
+
+function Module:onIndustryTick()
     self:scanIndustry()
 end
 
-function Module:onStop()
-    debugf("Schematic Monitor stopped.")
-end
-
 function Module:onScreenReply(reply)
-    -- handle screen messages here
+    -- handle button presses here
 end
 
 
@@ -45,6 +47,10 @@ function Module:attachToScreen()
     end
 end
 
+function Module:setupIndustry()
+    self.industry = modula:getService("industry")
+end
+
 function Module:scanIndustry()
     local industry = self.industry
     local alerts = {}
@@ -57,15 +63,25 @@ function Module:scanIndustry()
                 local state = machine.state
                 if state > 0 then
                     local name = product:getName()
-                    -- local icon = product:getIcon()
+                    local icon = product:getIcon()
                     if machine:isRunning() or machine:isPending() then
                         local remaining = machine.schematicsRemaining
                         if (remaining > 0) and (remaining < 10) then
-                            local alert = string.format("%s: Schematics Low (%s)", name, remaining)
+                            local alert = { 
+                                kind = string.format("Schematics Low (%s)", remaining),
+                                product = name,
+                                icon = icon,
+                                machine = machine.name
+                            }
                             table.insert(alerts, alert)
                         end
                     elseif machine:isMissingSchematics() then
-                        local alert = string.format("%s: Out Of Schematics", name)
+                        local alert = {
+                            kind = "Out Of Schematics",
+                            product = name,
+                            icon = icon,
+                            machine = machine.name
+                        }
                         table.insert(alerts, alert)
                     end
                 end
@@ -79,17 +95,22 @@ end
 
 Module.renderScript = [[
 
-state = state or { lines = { "hello world" }}
+state = state or { lines = { }}
 
 if payload then
-    state.lines = payload
+    local lines = { "SCHEMATICS STATUS", "" }
+    for i,item in ipairs(payload) do
+        table.insert(lines, string.format("%s (%s)", item.machine, item.product))
+        table.insert(lines, string.format(" - %s", item.kind))
+    end
+    state.lines = lines
     reply = { result = "ok" }
 end
 
 local screen = toolkit.Screen.new()
 local layer = screen:addLayer()
 local font = toolkit.Font.new("Play", 40)
-local chart = layer:addField(layer.rect:inset(10), state, font)
+local text = layer:addField(layer.rect:inset(10), state, font)
 
 layer:render()
 screen:scheduleRefresh()
