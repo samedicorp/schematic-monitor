@@ -16,6 +16,8 @@ end
 function Module:onStart()
     debugf("Schematic Monitor started.")
 
+    self.industry = modula:getService("industry")
+
     self:attachToScreen()
     self:scanIndustry()
 end
@@ -34,7 +36,6 @@ end
 -- ---------------------------------------------------------------------
 
 function Module:attachToScreen()
-    -- TODO: send initial container data as part of render script
     local service = modula:getService("screen")
     if service then
         local screen = service:registerScreen(self, false, self.renderScript)
@@ -45,36 +46,55 @@ function Module:attachToScreen()
 end
 
 function Module:scanIndustry()
-    local core = modula.core
-    local elementIDs = core.getElementIdList()
-    for elementID in ipairs(elementIDs) do
-        local info = core.getElementIndustryInfoById(elementID)
-        if info and info.state and info.state > 0 then
-            local name = core.getElementDisplayNameById(elementID)
-
-            local product = info.currentProducts[1]
+    local industry = self.industry
+    if industry then
+        local machines = industry:getMachines()
+        for i,machine in ipairs(machines) do
+            local product = machine.mainProduct
             if product then
-                local productItem = system.getItem(product.id)
-                local name = productItem.locDisplayName
-                local icon = productItem.iconPath
-                local schematic = productItem.schematics[1]
-                local state = info.state
-                if state == 2 then
-                    local remaining = info.schematicsRemaining
-                    if (remaining > 0) and (remaining < 10) then
-                        debugf("%s: Schematics Low (%s)", name, remaining)
+                local state = machine.info.state
+                if state > 0 then
+                    local info = machine.info
+                    local name = product:getName()
+                    -- local icon = product:getIcon()
+                    if machine:isRunning() or machine:isPending() then
+                        local remaining = info.schematicsRemaining
+                        if (remaining > 0) and (remaining < 10) then
+                            debugf("%s: Schematics Low (%s)", name, remaining)
+                        end
+                    elseif machine:isMissingSchematics() then
+                        debugf("%s: Out Of Schematics", name)
                     end
-                elseif state == 7 then
-                    debugf("%s: Out Of Schematics", name)
-                    debugf(core.getElementClassById(elementID))
-                    debugf(productItem)
                 end
             end
-
         end
     end
-
 end
+
+        -- if info and info.state and info.state > 0 then
+        --     local name = core.getElementDisplayNameById(elementID)
+
+        --     local product = info.currentProducts[1]
+        --     if product then
+        --         local productItem = system.getItem(product.id)
+        --         local name = productItem.locDisplayName
+        --         local icon = productItem.iconPath
+        --         local schematic = productItem.schematics[1]
+        --         local state = info.state
+        --         if state == 2 then
+        --             local remaining = info.schematicsRemaining
+        --             if (remaining > 0) and (remaining < 10) then
+        --                 debugf("%s: Schematics Low (%s)", name, remaining)
+        --             end
+        --         elseif state == 7 then
+        --             debugf("%s: Out Of Schematics", name)
+        --             debugf(productItem)
+        --         else
+        --             debugf("%s %d", name, state)
+        --         end
+        --     end
+
+        -- end
 
 Module.renderScript = [[
 

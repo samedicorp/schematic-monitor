@@ -13,6 +13,7 @@ modulaSettings = {
     useLocal = useLocal,
     modules = {
         ["samedicorp.modula.modules.screen"] = { },
+        ["samedicorp.modula.modules.industry"] = { },
         ["samedicorp.schematic-monitor.main"] = { }
     },
     templates = "samedicorp/schematic-monitor/templates"
