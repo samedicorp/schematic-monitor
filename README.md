@@ -1,6 +1,8 @@
-# Container Monitor
+# Schematic Monitor
 
-A container monitoring script for Dual Universe.
+A schematic monitoring script for Dual Universe.
 
-Uses the [Modula Dual Universe scripting framework](https://github.com/samedicorp/modula).
+Keeps an eye on all industry machines and warns about the ones that are low on schematics.
+
+Uses the [Modula Dual Universe scripting framework](https://github.com/samedicorp/modula), and the [Toolkit user interface framework](https://github.com/samedicorp/toolkit).
 
